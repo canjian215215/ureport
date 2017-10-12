@@ -66,16 +66,21 @@ public class ExportExcelServletAction extends BaseServletAction {
 	
 	public void buildExcel(HttpServletRequest req, HttpServletResponse resp,boolean withPage,boolean withSheet) throws IOException {
 		String file=req.getParameter("_u");
+		file=decode(file);
 		if(StringUtils.isBlank(file)){
 			throw new ReportComputeException("Report file can not be null.");
 		}
 		String fileName=req.getParameter("_n");
 		if(StringUtils.isNotBlank(fileName)){
 			fileName=decode(fileName);
+			if(!fileName.toLowerCase().endsWith(".xlsx")){
+				fileName=fileName+".xlsx";
+			}
 		}else{
 			fileName="ureport.xlsx";
 		}
 		resp.setContentType("application/octet-stream;charset=ISO8859-1");
+		fileName=new String(fileName.getBytes("UTF-8"),"ISO8859-1");
 		resp.setHeader("Content-Disposition","attachment;filename=\"" + fileName + "\"");
 		Map<String, Object> parameters = buildParameters(req);
 		String fullName=file+parameters.toString();

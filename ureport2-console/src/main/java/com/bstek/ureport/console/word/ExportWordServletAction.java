@@ -59,15 +59,20 @@ public class ExportWordServletAction extends BaseServletAction {
 	
 	public void buildWord(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		String file=req.getParameter("_u");
+		file=decode(file);
 		if(StringUtils.isBlank(file)){
 			throw new ReportComputeException("Report file can not be null.");
 		}
 		String fileName=req.getParameter("_n");
 		if(StringUtils.isNotBlank(fileName)){
 			fileName=decode(fileName);
+			if(!fileName.toLowerCase().endsWith(".docx")){
+				fileName=fileName+".docx";
+			}
 		}else{
 			fileName="ureport.docx";
 		}
+		fileName=new String(fileName.getBytes("UTF-8"),"ISO8859-1");
 		resp.setContentType("application/octet-stream;charset=ISO8859-1");
 		resp.setHeader("Content-Disposition","attachment;filename=\"" + fileName + "\"");
 		Map<String, Object> parameters = buildParameters(req);
