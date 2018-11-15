@@ -176,13 +176,13 @@ export function tableToXml(context){
                     for(let groupItem of groupItems){
                         cellXml+=`<group-item name="${groupItem.name}">`;
                         for(let condition of groupItem.conditions){
-                            cellXml+=`<condition property="${condition.leftProperty}" op="${encode(condition.op)}" id="${condition.id}"`;
+                            cellXml+=`<condition property="${condition.left}" op="${encode(condition.operation || condition.op)}" id="${condition.id}"`;
                             if(condition.join){
                                 cellXml+=` join="${condition.join}">`;
                             }else{
                                 cellXml+=`>`;
                             }
-                            cellXml+=`<value><![CDATA[${condition.rightExpression}]]></value>`;
+                            cellXml+=`<value><![CDATA[${condition.right}]]></value>`;
                             cellXml+=`</condition>`;
                         }
                         cellXml+='</group-item>';
@@ -211,7 +211,14 @@ export function tableToXml(context){
                 cellXml+=`<![CDATA[${value.value || ''}]]>`;
                 cellXml+=`</simple-value>`;
             }else if(value.type==='image'){
-                cellXml+=`<image-value source="${value.source}">`;
+                cellXml+=`<image-value source="${value.source}"`;
+                if(value.width){
+                    cellXml+=` width="${value.width}"`
+                }
+                if(value.height){
+                    cellXml+=` height="${value.height}"`;
+                }
+                cellXml+=`>`;
                 cellXml+=`<text>`;
                 cellXml+=`<![CDATA[${value.value}]]>`;
                 cellXml+=`</text>`;
@@ -310,7 +317,7 @@ export function tableToXml(context){
                         if(option.position){
                             cellXml+=` position="${option.position}"`;
                         }
-                        if(option.display){
+                        if(option.display!==undefined && option.display!==null){
                             cellXml+=` display="${option.display}"`;
                         }
                         if(option.duration){
@@ -324,6 +331,13 @@ export function tableToXml(context){
                         }
                         cellXml+=`/>`;
                     }
+                }
+                const plugins=chart.plugins || [];
+                for(let plugin of plugins){
+                    cellXml+=`<plugin name="${plugin.name}" display="${plugin.display}"/>`;
+                }
+                if(plugins){
+
                 }
                 cellXml+=`</chart-value>`;
             }
@@ -507,7 +521,11 @@ export function tableToXml(context){
         xml+=` column-count="${paper.columnCount}" column-margin="${paper.columnMargin}"`;
     }
     xml+=`></paper>`;
+    if(context.reportDef.searchFormXml){
+        xml+=context.reportDef.searchFormXml;
+    }
     xml+=`</ureport>`;
+    xml=encodeURIComponent(xml);
     return xml;
 };
 
@@ -524,6 +542,7 @@ function getSpan(hot,row,col){
 function buildConditions(conditions){
     let cellXml='';
     if(conditions){
+        const size=conditions.length;
         for(let condition of conditions){
             if(!condition.type || condition.type==='property'){
                 if(condition.left){
@@ -532,7 +551,7 @@ function buildConditions(conditions){
                     cellXml+=`<condition op="${encode(condition.operation)}" id="${condition.id}"`;
                 }
                 cellXml+=` type="${condition.type}"`;
-                if(condition.join){
+                if(condition.join && size>1){
                     cellXml+=` join="${condition.join}">`;
                 }else{
                     cellXml+=`>`;
@@ -540,7 +559,7 @@ function buildConditions(conditions){
                 cellXml+=`<value><![CDATA[${condition.right}]]></value>`;
             }else{
                 cellXml+=`<condition type="${condition.type}" op="${encode(condition.operation)}" id="${condition.id}"`;
-                if(condition.join){
+                if(condition.join && size>1){
                     cellXml+=` join="${condition.join}">`;
                 }else{
                     cellXml+=`>`;

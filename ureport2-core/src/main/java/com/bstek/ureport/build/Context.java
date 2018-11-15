@@ -36,6 +36,7 @@ import com.bstek.ureport.model.Cell;
 import com.bstek.ureport.model.Column;
 import com.bstek.ureport.model.Report;
 import com.bstek.ureport.model.Row;
+import com.bstek.ureport.utils.ElCompute;
 
 /**
  * @author Jacky.gao
@@ -47,12 +48,14 @@ public class Context {
 	private int pageIndex;
 	private int totalPages;
 	private boolean doPaging;
-	private List<Row> currentPageRows;
+	private Map<String,Object> variableMap=new HashMap<String,Object>();
+	private Map<Integer,List<Row>> currentPageRowsMap=new HashMap<Integer,List<Row>>();
 	private Map<String,Dataset> datasetMap;
 	private ApplicationContext applicationContext;
 	private ReportBuilder reportBuilder;
 	private Map<String,Object> parameters;
 	private HideRowColumnBuilder hideRowColumnBuilder;
+	private List<Cell> existPageFunctionCells=new ArrayList<Cell>();
 	private Map<String,List<Cell>> unprocessedCellsMap = new HashMap<String,List<Cell>>();
 	private Map<Row,Map<Column,Cell>> blankCellsMap=new HashMap<Row,Map<Column,Cell>>();
 	private Map<Row,Integer> fillBlankRowsMap=new HashMap<Row,Integer>();
@@ -228,6 +231,10 @@ public class Context {
 		throw new DatasetUndefinitionException(name);
 	}
 	
+	public Map<String, Dataset> getDatasetMap() {
+		return datasetMap;
+	}
+	
 	public List<Cell> nextUnprocessedCells(){
 		if(unprocessedCellsMap.size()==0){
 			return null;
@@ -260,6 +267,10 @@ public class Context {
 		return targetCellsList;
 	}
 	
+	public Object evalExpr(String expression){
+		return new ElCompute().doCompute(expression);
+	}
+	
 	public boolean isCellPocessed(String cellName){
 		return !unprocessedCellsMap.containsKey(cellName);
 	}
@@ -278,12 +289,21 @@ public class Context {
 	public void setPageIndex(int pageIndex) {
 		this.pageIndex = pageIndex;
 	}
-	public void setCurrentPageRows(List<Row> currentPageRows) {
-		this.currentPageRows = currentPageRows;
+	public void setCurrentPageRows(int pageIndex,List<Row> currentPageRows) {
+		currentPageRowsMap.put(pageIndex, currentPageRows);
 	}
-	public List<Row> getCurrentPageRows() {
-		return currentPageRows;
+	public List<Row> getCurrentPageRows(int pageIndex) {
+		return currentPageRowsMap.get(pageIndex);
 	}
+	
+	public void addExistPageFunctionCells(Cell cell) {
+		existPageFunctionCells.add(cell);
+	}
+	
+	public List<Cell> getExistPageFunctionCells() {
+		return existPageFunctionCells;
+	}
+	
 	public int getTotalPages() {
 		return totalPages;
 	}
@@ -294,5 +314,16 @@ public class Context {
 	
 	public Cell getRootCell() {
 		return rootCell;
+	}
+	
+	public void putVariable(String key,Object value){
+		variableMap.put(key, value);
+	}
+	
+	public void resetVariableMap(){
+		variableMap.clear();
+	}
+	public Object getVariable(String key){
+		return variableMap.get(key);
 	}
 }

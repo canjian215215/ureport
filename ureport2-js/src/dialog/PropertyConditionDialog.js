@@ -126,6 +126,7 @@ export default class PropertyConditionDialog{
                 item.conditions=[];
             }
             const conditions=item.conditions;
+            let i=0;
             for(let condition of conditions){
                 if(!condition.id){
                     condition.id=uuid.v1();
@@ -135,12 +136,13 @@ export default class PropertyConditionDialog{
                 if(!condition.left || condition.left===''){
                     text=`${window.i18n.dialog.propCondition.currentValue} `+op+" "+(condition.right || condition.expr);
                 }
-                if(condition.join){
+                if(condition.join && i>0){
                     text=condition.join+' '+text;
                 }
                 const newOption=$(`<option>${text}</option>`);
                 newOption.data(condition);
                 _this.conditionList.append(newOption);
+                i++;
                 setDirty();
             }
         });
@@ -960,6 +962,8 @@ export default class PropertyConditionDialog{
             <option></option>
             <option value="_blank">${window.i18n.dialog.propCondition.newWindow}</option>
             <option value="_self">${window.i18n.dialog.propCondition.currentWindow}</option>
+            <option value="_parent">${window.i18n.dialog.propCondition.parentWindow}</option>
+            <option value="_top">${window.i18n.dialog.propCondition.topWindow}</option>
         </select></span>`);
         this.linkGroup.append(this.linkTargetSelect);
         this.linkTargetSelect.children('select').change(function(){
